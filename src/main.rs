@@ -26,6 +26,17 @@ impl convert::From<u8> for LeapIndicator {
     }
 }
 
+impl convert::Into<u8> for LeapIndicator {
+    fn into(self) -> u8 {
+        match self {
+            LeapIndicator::NoWarning => 0,
+            LeapIndicator::LastSixtyOne => 1,
+            LeapIndicator::LastFiftyNine => 2,
+            LeapIndicator::AlarmCondition => 3,
+        }
+    }
+}
+
 impl fmt::Display for LeapIndicator {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         match *self {
@@ -62,6 +73,21 @@ impl convert::From<u8> for Mode {
             6 => Mode::ReservedControl,
             7 => Mode::ReservedPrivate,
             _ => Mode::ReservedPrivate, // Until TryFrom is stabilized
+        }
+    }
+}
+
+impl convert::Into<u8> for Mode {
+    fn into(self) -> u8 {
+        match self {
+            Mode::Reserved => 0,
+            Mode::SymmetricActive => 1,
+            Mode::SymmetricPassive => 2,
+            Mode::Client => 3,
+            Mode::Server => 4,
+            Mode::Broadcast => 5,
+            Mode::ReservedControl => 6,
+            Mode::ReservedPrivate => 7,
         }
     }
 }
@@ -131,7 +157,9 @@ fn main() {
     let mut req: [u8; 48] = [0; 48];
     let mut res: [u8; 48] = [0; 48];
 
-    req[0] = (0x03 << 6) | (4 << 3) | 0x03;
+    req[0] = (4 << 3);
+    req[0] |= Into::<u8>::into(LeapIndicator::AlarmCondition) << 6;
+    req[0] |= Into::<u8>::into(Mode::Client);
 
     let socket = net::UdpSocket::bind(("0.0.0.0", 0)).unwrap();
     socket.send_to(&req, ("0.pool.ntp.org", 123));
