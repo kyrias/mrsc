@@ -187,17 +187,17 @@ Version number: {}
 
 
 fn main() {
-    let mut req: [u8; 48] = [0; 48];
-    let mut res: [u8; 48] = [0; 48];
+    let mut request: [u8; 48] = [0; 48];
+    let mut response: [u8; 48] = [0; 48];
 
-    req[0] |= Into::<u8>::into(LeapIndicator::AlarmCondition) << 6;
-    req[0] |= Into::<u8>::into(Version::V4) << 3;
-    req[0] |= Into::<u8>::into(Mode::Client);
+    request[0] |= Into::<u8>::into(LeapIndicator::AlarmCondition) << 6;
+    request[0] |= Into::<u8>::into(Version::V4) << 3;
+    request[0] |= Into::<u8>::into(Mode::Client);
 
     let socket = net::UdpSocket::bind(("0.0.0.0", 0)).unwrap();
-    socket.send_to(&req, ("0.pool.ntp.org", 123));
-    socket.recv_from(&mut res);
+    socket.send_to(&request, ("0.pool.ntp.org", 123));
+    socket.recv_from(&mut response);
 
-    let response = SNTPResponse::from(res);
-    println!("{}", response);
+    let sntp_response = SNTPResponse::from(response);
+    println!("{}", sntp_response);
 }
