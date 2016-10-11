@@ -50,6 +50,39 @@ impl fmt::Display for LeapIndicator {
 
 
 
+enum Version {
+    V4,
+    Unknown
+}
+
+impl convert::From<u8> for Version {
+    fn from(v: u8) -> Version {
+        match v {
+            4 => Version::V4,
+            _ => Version::Unknown,
+        }
+    }
+}
+impl convert::Into<u8> for Version {
+    fn into(self) -> u8 {
+        match self {
+            Version::V4 => 4,
+            Version::Unknown => 0,
+        }
+    }
+}
+
+impl fmt::Display for Version {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            Version::V4 => write!(f, "4"),
+            Version::Unknown => write!(f, "Unknown"),
+        }
+    }
+}
+
+
+
 enum Mode {
     Reserved,
     SymmetricActive,
@@ -111,7 +144,7 @@ impl fmt::Display for Mode {
 
 struct SNTPResponse {
     leap_indicator: LeapIndicator,
-    version: u8,
+    version: Version,
     mode: Mode,
     stratum: u8,
     precision: i8,
@@ -123,7 +156,7 @@ impl convert::From<[u8; 48]> for SNTPResponse {
     fn from(res: [u8; 48]) -> SNTPResponse {
         SNTPResponse {
             leap_indicator: LeapIndicator::from(res[0] >> 6),
-            version: ((res[0] & 0x38) >> 3),
+            version: Version::from((res[0] & 0x38) >> 3),
             mode: Mode::from(res[0] & 0x07),
             stratum: res[1],
             precision: res[3] as i8,
@@ -157,8 +190,8 @@ fn main() {
     let mut req: [u8; 48] = [0; 48];
     let mut res: [u8; 48] = [0; 48];
 
-    req[0] = (4 << 3);
     req[0] |= Into::<u8>::into(LeapIndicator::AlarmCondition) << 6;
+    req[0] |= Into::<u8>::into(Version::V4) << 3;
     req[0] |= Into::<u8>::into(Mode::Client);
 
     let socket = net::UdpSocket::bind(("0.0.0.0", 0)).unwrap();
