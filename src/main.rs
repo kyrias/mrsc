@@ -224,8 +224,8 @@ fn main() {
     request[0] |= Into::<u8>::into(Mode::Client);
 
     let socket = net::UdpSocket::bind(("0.0.0.0", 0)).unwrap();
-    socket.send_to(&request, (server.as_str(), 123));
-    socket.recv_from(&mut response);
+    socket.send_to(&request, (server.as_str(), 123)).expect("Failed sending SNTP request");
+    socket.recv_from(&mut response).expect("Failed receiving SNTP response");
 
     let sntp_response = SNTPResponse::from(response);
     println!("{}", sntp_response);
