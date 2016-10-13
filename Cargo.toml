@@ -4,4 +4,5 @@ version = "0.1.0"
 authors = ["Johannes Löthberg <johannes@kyriasis.com>"]
 
 [dependencies]
+getopts = "0.2.14"
 byteorder = "0.5.3"

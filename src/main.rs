@@ -1,9 +1,12 @@
+extern crate getopts;
 extern crate byteorder;
 
 use std::net;
 use std::fmt;
 use std::convert;
+use std::env;
 
+use getopts::Options;
 use byteorder::{BigEndian, ByteOrder};
 
 
@@ -185,8 +188,34 @@ Version number: {}
 }
 
 
+fn print_usage(program: &str, opts: Options) {
+    println!("{}", opts.usage(&format!("Usage: {} [options]", program)));
+}
+
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
+    let program = &args[0];
+
+    let mut opts = Options::new();
+    opts.optflag("h", "help", "Show this usage message.");
+    opts.optopt("s", "server", "NTP server to query.", "HOST");
+
+    let matches = match opts.parse(&args[1..]) {
+        Ok(m)  => { m }
+        Err(e) => { panic!(e.to_string()) }
+    };
+
+    if matches.opt_present("h") {
+        print_usage(&program, opts);
+        return;
+    }
+
+    let server = match matches.opt_str("s") {
+        Some(s) => { s }
+        None    => { "0.pool.ntp.org".to_string() }
+    };
+
     let mut request: [u8; 48] = [0; 48];
     let mut response: [u8; 48] = [0; 48];
 
@@ -195,7 +224,7 @@ fn main() {
     request[0] |= Into::<u8>::into(Mode::Client);
 
     let socket = net::UdpSocket::bind(("0.0.0.0", 0)).unwrap();
-    socket.send_to(&request, ("0.pool.ntp.org", 123));
+    socket.send_to(&request, (server.as_str(), 123));
     socket.recv_from(&mut response);
 
     let sntp_response = SNTPResponse::from(response);
